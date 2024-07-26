@@ -28,6 +28,19 @@ services:
     volumes:
       - ./prisma:/app/prisma
 
+  init-sysadmin:
+    build:
+      context: .
+      dockerfile: Dockerfile.init
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
+      SYSADMIN_EMAIL: "sysadmin@example.com"
+      SYSADMIN_PASSWORD: "20242024"
+    volumes:
+      - ./prisma:/app/prisma
+
   mqtt:
     build:
       context: ./Broker-mqtt
