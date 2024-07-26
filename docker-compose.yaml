@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: project-management
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  app:
+    build:
+      context: ./Project-Management
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
+      JWT_SECRET: "secret"
+      EXPIRY_TIME: "3600"
+    volumes:
+      - ./prisma:/app/prisma
+
+  mqtt:
+    build:
+      context: ./Broker-mqtt
+      dockerfile: Dockerfile
+    ports:
+      - 1883:1883
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
+      MQTT_HOST: "mqtt://mqtt:1883"
+      MQTT_CLIENT_ID: "PickToLight"
+      MQTT_USERNAME: "PickToLight"
+      MQTT_PASSWORD: "PickToLight"
+    volumes:
+      - ./prisma:/app/prisma
+
+volumes:
+  postgres_data:

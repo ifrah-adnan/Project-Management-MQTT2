@@ -1,0 +1,22 @@
+POST http://localhost:3000/projects HTTP/1.1
+Accept: text/x-component
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: en-US,en;q=0.9,en-GB-oxendict;q=0.8,pt;q=0.7,ar;q=0.6,fr;q=0.5
+Connection: keep-alive
+Content-Length: 131
+Content-Type: text/plain;charset=UTF-8
+Cookie: session=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjp7ImlkIjoiNzIwYmZiZGUtZDA3OC00NTlkLWI2ZTUtZmYxM2Q0NjhiNTQ4IiwiZW1haWwiOiJpc2VsamFvODlAZ21haWwuY29tIiwibmFtZSI6ImlzZWwgamFvIiwicm9sZSI6IlVTRVIiLCJwYXNzd29yZCI6IiQyYiQxMiRUYzhUNHBneHBmdk5xUngvNzlyQk9lbnZIazFjaXZsblkzeTVtZzMyVEJvUldtbm8yb1IweSIsImltYWdlIjpudWxsLCJhdHRyaWJ1dGVzIjp7fSwicG9zdElkIjpudWxsLCJjcmVhdGVkQXQiOiIyMDI0LTA0LTA4VDIyOjQwOjA2LjM3OVoiLCJ1cGRhdGVkQXQiOiIyMDI0LTA0LTA4VDIyOjQwOjA2LjM3OVoifSwiZXhwaXJlcyI6IjIwMjQtMDQtMDlUMTU6NTc6NTguOTI1WiIsImlhdCI6MTcxMjY3MzI3OCwiZXhwIjoxNzEyNjc4Mjc4fQ.fKfZGg5Qeqwu4YiGH-iHwSHodNLwoRlA-gJDkJwuMVI
+Host: localhost:3000
+Next-Action: 0c371bbeab7072f815e39350d72e966e9f72888b
+Next-Router-State-Tree: %5B%22%22%2C%7B%22children%22%3A%5B%22(protected)%22%2C%7B%22children%22%3A%5B%22projects%22%2C%7B%22children%22%3A%5B%22__PAGE__%22%2C%7B%7D%5D%7D%5D%7D%5D%7D%2Cnull%2Cnull%2Ctrue%5D
+Origin: http://localhost:3000
+Referer: http://localhost:3000/projects
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: same-origin
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36
+sec-ch-ua: "Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+
+[{"name":"F","description":"FDD","startDate":"$D2024-04-10T00:00:00.000Z","endDate":"$D2024-04-10T00:00:00.000Z","status":"ACTIVE"}]

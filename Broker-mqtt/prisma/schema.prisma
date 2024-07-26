@@ -1,0 +1,271 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  name       String
+  role       Role        @default(USER)
+  password   String
+  image      String?
+  phone      String?
+  attributes Json        @default("{}")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @default(now()) @updatedAt @map("updated_at")
+  commands   Command[]
+  expertises Expertise[]
+  histories  History[]
+  plannings  Planning[]
+
+  @@map("users")
+}
+
+model Project {
+  id              String           @id @default(uuid())
+  name            String
+  description     String?
+  status          Boolean          @default(true)
+  workFlowId      String?          @unique @map("workflow_id")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
+  commandProjects CommandProject[]
+  workFlow        WorkFlow?        @relation(fields: [workFlowId], references: [id])
+
+  @@map("projects")
+}
+
+model Command {
+  id              String           @id @default(uuid())
+  reference       String           @unique
+  clientId        String?
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
+  commandProjects CommandProject[]
+  client          User?            @relation(fields: [clientId], references: [id])
+
+  @@map("commands")
+}
+
+model CommandProject {
+  id        String     @id @default(uuid())
+  commandId String     @map("command_id")
+  projectId String     @map("project_id")
+  target    Int
+  done      Int        @default(0)
+  startDate DateTime?  @map("start_date")
+  endDate   DateTime   @map("end_date")
+  status    Status     @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @default(now()) @updatedAt @map("updated_at")
+  command   Command    @relation(fields: [commandId], references: [id])
+  project   Project    @relation(fields: [projectId], references: [id])
+  planings  Planning[]
+  sprint    Sprint?
+
+  @@unique([commandId, projectId])
+  @@map("command_projects")
+}
+
+model Post {
+  id          String      @id @default(uuid())
+  name        String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @default(now()) @updatedAt @map("updated_at")
+  operationId String?
+  device      Device?
+  plannings   Planning[]
+  Operation   Operation?  @relation(fields: [operationId], references: [id])
+  expertises  Expertise[] @relation("ExpertiseToPost")
+
+  @@map("posts")
+}
+
+model Planning {
+  id               String             @id @default(uuid())
+  operatorId       String             @map("user_id")
+  postId           String             @map("post_id")
+  operationId      String             @map("operation_id")
+  commandProjectId String             @map("command_project_id")
+  startDate        DateTime           @map("start_date")
+  endDate          DateTime           @map("end_date")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
+  device           Device?
+  operationHistory OperationHistory[]
+  commandProject   CommandProject     @relation(fields: [commandProjectId], references: [id])
+  operation        Operation          @relation(fields: [operationId], references: [id])
+  post             Post               @relation(fields: [postId], references: [id])
+  operator         User               @relation(fields: [operatorId], references: [id])
+
+  @@map("planifications")
+}
+
+model Sprint {
+  id               String         @id @default(uuid())
+  target           Int
+  days             Int
+  status           Status         @default(ACTIVE)
+  commandProjectId String         @unique @map("command_project_id")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @default(now()) @updatedAt @map("updated_at")
+  commandProject   CommandProject @relation(fields: [commandProjectId], references: [id])
+
+  @@map("sprints")
+}
+
+model Operation {
+  id            String         @id
+  name          String
+  code          String         @unique
+  icon          String
+  description   String?
+  isFinal       Boolean        @default(false) @map("is_final")
+  estimatedTime Int            @map("estimated_time")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at")
+  expertiseId   String?
+  Expertise     Expertise?     @relation(fields: [expertiseId], references: [id])
+  plannings     Planning[]
+  posts         Post[]
+  WorkflowNode  WorkFlowNode[]
+
+  @@map("operations")
+}
+
+model WorkFlowNode {
+  id          String         @id @default(uuid())
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at")
+  workFlowId  String
+  operationId String
+  data        Json
+  targetEdges WorkFlowEdge[] @relation("edge_node_source")
+  sourceEdges WorkFlowEdge[] @relation("edge_node_target")
+  operation   Operation      @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  WorkFlow    WorkFlow       @relation(fields: [workFlowId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_nodes")
+}
+
+model WorkFlowEdge {
+  id         String       @id @default(uuid())
+  sourceId   String
+  targetId   String
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @default(now()) @updatedAt @map("updated_at")
+  workFlowId String
+  data       Json
+  count      Int          @default(1)
+  source     WorkFlowNode @relation("edge_node_source", fields: [sourceId], references: [id], onDelete: Cascade)
+  target     WorkFlowNode @relation("edge_node_target", fields: [targetId], references: [id], onDelete: Cascade)
+  WorkFlow   WorkFlow     @relation(fields: [workFlowId], references: [id])
+
+  @@map("workflow_edges")
+}
+
+model WorkFlow {
+  id           String         @id @default(uuid())
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at")
+  project      Project?
+  WorkFlowEdge WorkFlowEdge[]
+  WorkflowNode WorkFlowNode[]
+
+  @@map("workflows")
+}
+
+model OperationHistory {
+  id         String   @id @default(uuid())
+  planningId String   @map("planning_id")
+  count      Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  planning   Planning @relation(fields: [planningId], references: [id], onDelete: Cascade)
+
+  @@map("operation_histories")
+}
+
+model Expertise {
+  id          String      @id @default(uuid())
+  userId    String      @map("user_id")
+
+  name        String
+  description String?
+  code        String      @unique
+ createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @default(now()) @updatedAt @map("updated_at")
+  users       User        @relation(fields: [userId], references: [id])
+  operations  Operation[]
+  posts       Post[]      @relation("ExpertiseToPost")
+
+  @@map("expertises")
+}
+
+model History {
+  id        String      @id @default(uuid())
+  userId    String      @map("user_id")
+  action    ActionType
+  entity    EntityType?
+  entityId  String
+  details   String
+  createdAt DateTime    @default(now()) @map("created_at")
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@map("histories")
+}
+
+model Device {
+  id         String    @id @default(uuid())
+  deviceId   String    @unique
+  planningId String?   @unique @map("planning_id")
+  postId     String?   @unique @map("post_id")
+  count      Int?      @default(1)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  planning   Planning? @relation(fields: [planningId], references: [id], onDelete: Cascade)
+  post       Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("devices")
+}
+
+model OperationRecord {
+  id        String   @id @default(uuid())
+  deviceId  String
+  count     Int?     @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("OperationRecords")
+}
+
+enum Role {
+  ADMIN
+  USER
+  SYS_ADMIN
+  CLIENT
+  OPERATOR
+}
+
+enum Status {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum ActionType {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum EntityType {
+  EXPERTISE
+  COMMAND
+  PROJECT
+  POSTS
+  DEVICE
+}

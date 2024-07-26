@@ -1,0 +1,48 @@
+.chart {
+  flex: 4;
+  -webkit-box-shadow: 2px 4px 10px 1px rgba(0, 0, 0, 0.47);
+  box-shadow: 2px 4px 10px 1px rgba(201, 201, 201, 0.47);
+  padding: 10px;
+  color: gray;
+
+  .title {
+    margin-bottom: 20px;
+  }
+
+  .chartGrid {
+    stroke: rgb(228, 225, 225);
+  }
+}
+
+.industrial-chart {
+  background-color: #edf2f4;
+  border: 2px solid #2b2d42;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.industrial-title {
+  font-family: "Roboto", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2b2d42;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 15px 0;
+  border-bottom: 2px solid #2b2d42;
+}
+
+.industrial-btn {
+  background-color: #2b2d42;
+  color: #edf2f4;
+  border: none;
+  padding: 10px 20px;
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: background-color 0.3s ease;
+}
+
+.industrial-btn:hover {
+  background-color: #ff6b00;
+}

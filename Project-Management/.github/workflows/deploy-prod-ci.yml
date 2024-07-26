@@ -1,0 +1,72 @@
+name: DEPLOY PROD CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "deploy-prod"
+
+env:
+  image: frontend-project-management-prod
+  org: digieye
+  GITOPS_REPO_NAME: digi-forge-gitops
+  GITOPS_REPO_OWNER: DIGIEYE-FORGE
+  APP_CONFIG_PATH: prod/apps/frontend-project-management/manifests 
+
+jobs:
+  build:
+    name: build and push image
+    runs-on: ubuntu-latest
+    outputs:
+      build_tag: ${{steps.build-tag.outputs.BUILD_TAG}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set build tag
+        id: build-tag
+        shell: bash
+        run: |
+          echo "BUILD_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "BUILD_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+ 
+      - name: Build docker image
+        uses: ./.github/actions/build-docker-image
+        with:
+          file: ./Dockerfile
+          context: .
+          tags: |
+            ${{ env.org }}/${{ env.image }}:${{ env.BUILD_TAG }}
+            ${{ env.org }}/${{ env.image }}:latest
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          login: true
+          push: true
+
+  update-gitops-repo:
+    name: update gitops repo
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      PAT: ${{ secrets.PAT }}
+      BUILD_TAG: ${{needs.build.outputs.build_tag}}
+
+    steps:
+      - name: Checkout gitops repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.GITOPS_REPO_OWNER }}/${{ env.GITOPS_REPO_NAME }}
+          token: ${{ secrets.PAT }}
+          path: ./${{ env.GITOPS_REPO_NAME }}
+      - name: Update Image Tag
+        shell: sh
+        run: |
+          cd ./${{ env.GITOPS_REPO_NAME }}/${{ env.APP_CONFIG_PATH }}
+          sed 's|image: ${{ env.org }}/${{ env.image }}:.*$|image: ${{ env.org }}/${{ env.image }}:${{ env.BUILD_TAG }}|' -i ./install.yml
+          cat  ./install.yml
+
+      - name: Push changes
+        uses: EndBug/add-and-commit@v7
+        with:
+          cwd: ./${{ env.GITOPS_REPO_NAME }}
+          message: "Update [${{ env.APP_CONFIG_PATH }}] from ${{ github.REPOSITORY }} | ${{ env.BUILD_TAG }}"
+          branch: HEAD
