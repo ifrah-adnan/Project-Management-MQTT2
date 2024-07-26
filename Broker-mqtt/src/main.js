@@ -1,10 +1,13 @@
 import mqtt from "mqtt";
 import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 var mqttClient;
 const db = new PrismaClient();
-const mqttHost = "mqtt://192.168.10.232:1883";
-const clientId = "PickToLight";
+const mqttHost = process.env.MQTT_HOST;
+const clientId = process.env.MQTT_CLIENT_ID;
 let step = 0;
 let beeper = "off";
 let status = "ACTIVE";
@@ -18,8 +21,8 @@ export function connectToBroker() {
     clean: true,
     reconnectPeriod: 1000,
     connectTimeout: 30 * 1000,
-    username: "PickToLight",
-    password: "PickToLight",
+    username: process.env.MQTT_USERNAME,
+    password: process.env.MQTT_PASSWORD,
   };
 
   mqttClient = mqtt.connect(mqttHost, options);
@@ -33,17 +36,18 @@ export function connectToBroker() {
   });
 
   mqttClient.on("connect", () => {
-    console.log("Client connected:" + clientId);
+    console.log("Client connected: " + clientId);
   });
 
   // Received Message
   mqttClient.on("message", async (topic, message, packet) => {
     const deviceId = topic.split("/")[1];
-    const messageRecieved = message.toString();
-    console.log("recieved from", topic, "message", messageRecieved);
+    const messageReceived = message.toString();
+    console.log("Received from", topic, "message", messageReceived);
     await publishToDevice(deviceId);
   });
 }
+
 async function publishToDevice(deviceId) {
   const device = await db.device.findUnique({
     where: {
@@ -80,14 +84,12 @@ async function publishToDevice(deviceId) {
   });
 
   if (device && device.count && device.planning) {
-    const workflowNode = device?.planning?.operation.WorkflowNode?.filter(
+    const workflowNode = device.planning.operation.WorkflowNode.filter(
       (wfNode) =>
         wfNode.workFlowId === device.planning.commandProject.project.workFlowId
     )[0];
-    const sumOperationTarget = workflowNode?.targetEdges?.reduce(
-      (acc, edge) => {
-        return acc + edge.count; // Replace 'count' with the appropriate property you want to sum
-      },
+    const sumOperationTarget = workflowNode.targetEdges.reduce(
+      (acc, edge) => acc + edge.count,
       0
     );
 
@@ -97,14 +99,18 @@ async function publishToDevice(deviceId) {
         count: +device.count,
       },
     });
+
     const today = new Date();
     today.setHours(0);
+
     const opRecord = await db.operationRecord.count({
       where: { deviceId: deviceId, createdAt: { gte: today } },
     });
+
     const totalOpRecord = await db.operationRecord.count({
       where: { deviceId: deviceId },
     });
+
     if (device.planning.operation.isFinal) {
       if (
         device.planning.commandProject.target ==
@@ -115,6 +121,7 @@ async function publishToDevice(deviceId) {
       } else {
         beeper = "off";
       }
+
       await db.commandProject.update({
         where: { id: device.planning.commandProject.id },
         data: {
@@ -122,16 +129,17 @@ async function publishToDevice(deviceId) {
           status: status,
         },
       });
-    } else
+    } else {
       beeper =
         totalOpRecord * device.count == sumOperationTarget ? "on" : "off";
+    }
 
     step = opRecord * device.count;
     const topic = `rpc/${deviceId}`;
-    const messageTopublish = `${step},ffc226,${beeper},${beeper}`;
-    console.log(messageTopublish, topic);
+    const messageToPublish = `${step},ffc226,${beeper},${beeper}`;
+    console.log(messageToPublish, topic);
 
-    mqttClient.publish(topic, messageTopublish, {});
+    mqttClient.publish(topic, messageToPublish, {});
   }
 }
 

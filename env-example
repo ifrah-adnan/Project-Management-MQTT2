@@ -1,0 +1,7 @@
+MQTT_HOST=mqtt://192.168.10.232:1883
+MQTT_CLIENT_ID=PickToLight
+MQTT_USERNAME=PickToLight
+MQTT_PASSWORD=PickToLight
+DATABASE_URL=postgresql://postgres:postgres@db:5432/project-management?schema=public
+SYSADMIN_EMAIL=sysadmin@example.com
+SYSADMIN_PASSWORD=20242024

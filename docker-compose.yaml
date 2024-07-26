@@ -22,7 +22,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
+      DATABASE_URL: "${DATABASE_URL}"
       JWT_SECRET: "secret"
       EXPIRY_TIME: "3600"
     volumes:
@@ -35,9 +35,9 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
-      SYSADMIN_EMAIL: "sysadmin@example.com"
-      SYSADMIN_PASSWORD: "20242024"
+      DATABASE_URL: "${DATABASE_URL}"
+      SYSADMIN_EMAIL: "${SYSADMIN_EMAIL}"
+      SYSADMIN_PASSWORD: "${SYSADMIN_PASSWORD}"
     volumes:
       - ./prisma:/app/prisma
 
@@ -50,11 +50,11 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
-      MQTT_HOST: "mqtt://mqtt:1883"
-      MQTT_CLIENT_ID: "PickToLight"
-      MQTT_USERNAME: "PickToLight"
-      MQTT_PASSWORD: "PickToLight"
+      DATABASE_URL: "${DATABASE_URL}"
+      MQTT_HOST: "${MQTT_HOST}"
+      MQTT_CLIENT_ID: "${MQTT_CLIENT_ID}"
+      MQTT_USERNAME: "${MQTT_USERNAME}"
+      MQTT_PASSWORD: "${MQTT_PASSWORD}"
     volumes:
       - ./prisma:/app/prisma
 
